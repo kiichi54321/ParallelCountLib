@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ParallelCount
+namespace ParallelCountLib
 {
     public class ParallelCount<CountData,ReadData>
         where CountData : ICountDataStruct<CountData>,new()

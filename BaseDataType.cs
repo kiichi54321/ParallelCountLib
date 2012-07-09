@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ParallelCount
+namespace ParallelCountLib
 {
     public class BaseReadData<DataType>where DataType:ICountDataStruct<DataType>
     {
@@ -18,7 +18,7 @@ namespace ParallelCount
             get { return readLines; }
             set { readLines = value; }
         }
-
+         
         public string Key
         {
             get;

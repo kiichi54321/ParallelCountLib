@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Collections.Concurrent;
 
-namespace ParallelCount
+namespace ParallelCountLib
 {
     public class DataStock<CountData>where CountData:ICountDataStruct<CountData>,new()
     {

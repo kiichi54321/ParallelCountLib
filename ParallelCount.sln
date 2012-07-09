@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParallelCount", "ParallelCount.csproj", "{5F82E908-D562-426C-84B7-A2A87C5D07A3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParallelCountLib", "ParallelCountLib.csproj", "{5F82E908-D562-426C-84B7-A2A87C5D07A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

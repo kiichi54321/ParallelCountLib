@@ -8,8 +8,8 @@
     <ProjectGuid>{5F82E908-D562-426C-84B7-A2A87C5D07A3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ParallelCount</RootNamespace>
-    <AssemblyName>ParallelCount</AssemblyName>
+    <RootNamespace>ParallelCountLib</RootNamespace>
+    <AssemblyName>ParallelCountLib</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -43,6 +43,7 @@
     <Compile Include="BaseDataType.cs" />
     <Compile Include="DataStock.cs" />
     <Compile Include="DataStockManage.cs" />
+    <Compile Include="FileDivisionByKey.cs" />
     <Compile Include="HashNameManage.cs" />
     <Compile Include="IntCount.cs" />
     <Compile Include="ParallelCount.cs" />

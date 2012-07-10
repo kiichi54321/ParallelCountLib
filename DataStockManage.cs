@@ -17,22 +17,25 @@ namespace ParallelCountLib
             dicDataStock.Clear();
         }
 
-        public event EventHandler<ReadDataEventArgs<ReadData, CountData>> ReadLineEvent;
-        public event EventHandler<ReportEventArgs> ReportEvent;
+//        public event EventHandler<ReadDataEventArgs<ReadData, CountData>> ReadLineEvent;
+        public Action<string> ReportAction { get; set; }
+        public Action<ReadData> ReadLineAction { get; set; }
+
 
         protected void OnReport(string message)
         {
-            if (ReportEvent != null)
+            if (ReportAction != null)
             {
-                ReportEvent(this, new ReportEventArgs() { Message = message });
+                ReportAction(message);
             }
         }
+
         public DataStockManage()
         {
             readData = new ReadData();
-            readData.AddCount += (string o, string c, CountData h) =>
+            readData.AddCountAction = (string o, string c, CountData h) =>
             {
-                this.Add(o, h,c);
+                this.Add(o,c,h);
             };
         }
 
@@ -45,7 +48,7 @@ namespace ParallelCountLib
         public string BaseFileName { get; set; }
 
         bool addFlag = false;
-        public void Add(string key, CountData count, string hashstr)
+        public void Add(string hashstr,string key, CountData count )
         {
             addFlag = true;
             string hash = string.Empty;
@@ -86,7 +89,7 @@ namespace ParallelCountLib
                 }
                 else
                 {
-                    Add(key, count, hashstr);
+                    Add(hashstr,key, count );
                 }
             }
         }
@@ -102,7 +105,7 @@ namespace ParallelCountLib
                     key = readData.GroupByKeyFunc(item);
                     if (readData.Key != key)
                     {
-                        OnReadLineEvent(readData);
+                        OnReadLineAction(readData);
                         readData.Key = key;
                         readData.ReadLines.Clear();
                     }
@@ -111,26 +114,24 @@ namespace ParallelCountLib
                 else
                 {
                     readData.ReadLines.Add(item);
-                    OnReadLineEvent(readData);
+                    OnReadLineAction(readData);
                     readData.ReadLines.Clear();
                 }
             }
-            OnReadLineEvent(readData);
+            OnReadLineAction(readData);
             readData.ReadLines.Clear();
             readData.Key = null;
         }
 
-        protected void OnReadLineEvent(ReadData readData )
+        protected void OnReadLineAction(ReadData readData )
         {
-            var arg = new ReadDataEventArgs<ReadData, CountData>();
-            arg.ReadData = readData;
-            if (ReadLineEvent != null)
+            if (ReadLineAction != null)
             {
-                ReadLineEvent(this, arg);
+                ReadLineAction(readData);
             }
             else
             {
-                OnReport("ReadLineEventがありません。設定してください");
+                OnReport("ReadLineActionがありません。設定してください");
             }
 
         }

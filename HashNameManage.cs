@@ -6,25 +6,25 @@ using System.Collections.Concurrent;
 
 namespace ParallelCountLib
 {
-    public static class HashNameManage
+    public class HashNameManage
     {
-        static ConcurrentDictionary<string, HashNameData> dic = new ConcurrentDictionary<string, HashNameData>();
+        ConcurrentDictionary<string, HashNameData> dic = new ConcurrentDictionary<string, HashNameData>();
 
-        public static HashNameData GetHashNameData(string hash)
+        public HashNameData GetHashNameData(string hash)
         {
             HashNameData hashData;
             if (dic.TryGetValue(hash, out hashData) == false)
             {
-                lock (dic)
+                hashData = new HashNameData();
+                if (dic.TryAdd(hash, hashData)==false)
                 {
-                    hashData = new HashNameData();
-                    dic.TryAdd(hash, hashData);
+                    return GetHashNameData(hash);
                 }
             }
             return hashData;
         }
 
-        public static void Clear()
+        public void Clear()
         {
             dic.Clear();
         }

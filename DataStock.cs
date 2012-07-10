@@ -31,13 +31,6 @@ namespace ParallelCountLib
 
         public HashNameData HashNameData { get; set; }
 
-
-
-
-
-
-
-
         int idCount = 0;
 
         public int GetIdCount()

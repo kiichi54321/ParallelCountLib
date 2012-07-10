@@ -17,7 +17,6 @@ namespace ParallelCountLib
             dicDataStock.Clear();
         }
 
-//        public event EventHandler<ReadDataEventArgs<ReadData, CountData>> ReadLineEvent;
         public Action<string> ReportAction { get; set; }
         public Action<ReadData> ReadLineAction { get; set; }
 
@@ -94,6 +93,9 @@ namespace ParallelCountLib
             }
         }
 
+        public HashNameManage HashNameManage { get; set; }
+
+
         public void FileRead(string fileName)
         {
             string key = null;
@@ -125,15 +127,11 @@ namespace ParallelCountLib
 
         protected void OnReadLineAction(ReadData readData )
         {
+            readData.ReadLinesAction();
             if (ReadLineAction != null)
             {
                 ReadLineAction(readData);
             }
-            else
-            {
-                OnReport("ReadLineActionがありません。設定してください");
-            }
-
         }
 
         public IEnumerable<string> HashList
@@ -153,7 +151,7 @@ namespace ParallelCountLib
 
         public void Add(string key)
         {
-            Add(key, new CountData(), string.Empty);
+            Add(key, string.Empty, new CountData());
         }
 
 

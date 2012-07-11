@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 
 namespace ParallelCountLib
 {
-    public class DataStockManage<CountData, ReadData>
+    public class DataStockManage<CountData, ReadData>:IDisposable
         where CountData : ICountDataStruct<CountData>, new()
         where ReadData : BaseReadData<CountData>, new()
     {
@@ -102,9 +102,9 @@ namespace ParallelCountLib
             readData.ReadLines.Clear();
             foreach (var item in System.IO.File.ReadLines(fileName))
             {
-                if (readData.GroupByKeyFunc != null)
+                key = readData.GetGroupByKey(item);
+                if (key != null)
                 {
-                    key = readData.GroupByKeyFunc(item);
                     if (readData.Key != key)
                     {
                         OnReadLineAction(readData);
@@ -258,6 +258,15 @@ namespace ParallelCountLib
             set { stockType = value; }
         }
 
+
+        public void Dispose()
+        {
+            foreach (var item in dicDataStock)
+            {
+                item.Value.Dispose();
+            }
+            dicDataStock.Clear();
+        }
     }
 
 }

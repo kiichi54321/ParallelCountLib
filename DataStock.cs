@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 
 namespace ParallelCountLib
 {
-    public class DataStock<CountData>where CountData:ICountDataStruct<CountData>,new()
+    public class DataStock<CountData>:IDisposable where CountData:ICountDataStruct<CountData>,new()
     {
         public string FileName { get; set; }
         public string Folder { get; set; }
@@ -136,6 +136,13 @@ namespace ParallelCountLib
             }
 
             return list;
+        }
+
+        public void Dispose()
+        {
+            this.tmpDic.Clear();
+            HashNameData = null;
+
         }
     }
 

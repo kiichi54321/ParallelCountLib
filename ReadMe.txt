@@ -30,40 +30,39 @@ ParallelCountの起動
 
 
 ファイル分割のサンプル
-	void Sample()
-    {
-　		//カンマ区切りのデータであること前提
-
-        FileDivisionByKey file = new FileDivisionByKey();
-		//分割先の設定
-        file.GetHashFunc = (n) =>
-        {
-			//初めの列を使い、それがLong型なので変換して、それを120の余りをハッシュに設定。
-            var s = n.Split(',').First();
-            long value;
-            if (long.TryParse(s, out value))
-            {
-                var a = long.Parse(s) % 120;
-                return a.ToString();
-            }
-            return "-1";
-        };
-		//初めの列を一番目のソートキーにする
-        file.GetKeyFunc = (n) =>
-            {
-                return n.Split(',').FirstOrDefault();
-            };
-		//二番目の列を２番目のソートキーにする
-        file.GetSubKeyFunc = (n) =>
-            {
-                return n.Split(',').ElementAtOrDefault(1);
-            };
-        file.FileNameHeader = "Division";
-        file.Folder = "Data";
-        file.Run("DataSource.txt");
-		//これで、データを120個に分割し、それぞれがソートされたデータが作られる。
-		//重たい処理なので、実行時はスレッドにするといいと思う。
-    }
+void Sample()
+{
+　	//カンマ区切りのデータであること前提
+	FileDivisionByKey file = new FileDivisionByKey();
+	//分割先の設定
+	file.GetHashFunc = (n) =>
+	{
+		//初めの列を使い、それがLong型なので変換して、それを120の余りをハッシュに設定。
+		var s = n.Split(',').First();
+		long value;
+		if (long.TryParse(s, out value))
+		{
+			var a = long.Parse(s) % 120;
+			return a.ToString();
+		}
+		return "-1";
+	};
+	//初めの列を一番目のソートキーにする
+	file.GetKeyFunc = (n) =>
+		{
+			return n.Split(',').FirstOrDefault();
+		};
+	//二番目の列を２番目のソートキーにする
+	file.GetSubKeyFunc = (n) =>
+		{
+			return n.Split(',').ElementAtOrDefault(1);
+		};
+	file.FileNameHeader = "Division";
+	file.Folder = "Data";
+	file.Run("DataSource.txt");
+	//これで、データを120個に分割し、それぞれがソートされたデータが作られる。
+	//重たい処理なので、実行時はスレッドにするといいと思う。
+}
 
 
 

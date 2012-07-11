@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 
 namespace ParallelCountLib
 {
-    public class HashNameManage
+    public class HashNameManage:IDisposable
     {
         ConcurrentDictionary<string, HashNameData> dic = new ConcurrentDictionary<string, HashNameData>();
 
@@ -28,9 +28,18 @@ namespace ParallelCountLib
         {
             dic.Clear();
         }
+
+        public void Dispose()
+        {
+            foreach (var item in dic.Values)
+            {
+                item.Dispose();
+            }
+            dic.Clear();
+        }
     }
 
-    public class HashNameData
+    public class HashNameData:IDisposable
     {
         ConcurrentDictionary<string, int> table = new ConcurrentDictionary<string, int>();
         ConcurrentDictionary<int, string> table2 = new ConcurrentDictionary<int, string>();
@@ -79,5 +88,11 @@ namespace ParallelCountLib
 
 
 
+
+        public void Dispose()
+        {
+            table.Clear();
+            table2.Clear();
+        }
     }
 }

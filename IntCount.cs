@@ -16,6 +16,10 @@ namespace ParallelCountLib
 
     public struct IntCount:ICountDataStruct<IntCount>
     {
+
+
+
+
         public int Value { get; set; }
         public IntCount Add(IntCount a,IntCount b)
         {
@@ -42,6 +46,11 @@ namespace ParallelCountLib
         public IntCount Add(IntCount a)
         {
             return new IntCount() { Value = this.Value + a.Value };
+        }
+
+        public static IntCount Default
+        {
+            get { return new IntCount() { Value = 1 }; }
         }
     }
 }

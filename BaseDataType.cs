@@ -39,7 +39,11 @@ namespace ParallelCountLib
             }
         }
 
-        public Func<string, string> GroupByKeyFunc { get; set; }
+        public virtual string GetGroupByKey(string line)
+        {
+            return null;
+        }
+        
 
         public virtual void ReadLinesAction()
         {

@@ -71,7 +71,7 @@ namespace ParallelCountLib
                     }
                 }, System.Threading.Tasks.TaskCreationOptions.LongRunning);
 
-                taskList.Add(task);
+                if(task !=null) taskList.Add(task);
             }
             System.Threading.Tasks.Task.WaitAll(taskList.ToArray());
             OnReport("Start Reduce");

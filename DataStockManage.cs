@@ -223,16 +223,20 @@ namespace ParallelCountLib
                     Dictionary<string, CountData> dic = new Dictionary<string, CountData>();
                     foreach (var manage in manageList)
                     {
-                        var dataList = manage.GetDataStock(item).GetReduceData();
-                        foreach (var data in dataList)
+                        var dataStock = manage.GetDataStock(item);
+                        if (dataStock != null)
                         {
-                            if (dic.ContainsKey(data.Key))
+                            var dataList = dataStock.GetReduceData();
+                            foreach (var data in dataList)
                             {
-                                dic[data.Key] = dic[data.Key].Add(data.Count);
-                            }
-                            else
-                            {
-                                dic.Add(data.Key, data.Count);
+                                if (dic.ContainsKey(data.Key))
+                                {
+                                    dic[data.Key] = dic[data.Key].Add(data.Count);
+                                }
+                                else
+                                {
+                                    dic.Add(data.Key, data.Count);
+                                }
                             }
                         }
                     }

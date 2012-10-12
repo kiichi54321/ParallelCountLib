@@ -16,10 +16,6 @@ namespace ParallelCountLib
 
     public struct IntCount:ICountDataStruct<IntCount>
     {
-
-
-
-
         public int Value { get; set; }
         public IntCount Add(IntCount a,IntCount b)
         {
@@ -48,9 +44,63 @@ namespace ParallelCountLib
             return new IntCount() { Value = this.Value + a.Value };
         }
 
+        /// <summary>
+        /// Value = 1
+        /// </summary>
         public static IntCount Default
         {
             get { return new IntCount() { Value = 1 }; }
         }
+
+        public static IntCount Create(int i)
+        {
+            return new IntCount() { Value = i };
+        }
     }
+
+    public struct DoubleCount : ICountDataStruct<DoubleCount>
+    {
+        public double Value { get; set; }
+        public DoubleCount Add(DoubleCount a, DoubleCount b)
+        {
+            return new DoubleCount() { Value = a.Value + b.Value };
+        }
+
+        public override string ToString()
+        {
+            return this.Value.ToString();
+        }
+
+        public bool TryParse(string txt)
+        {
+            double i;
+            if (double.TryParse(txt, out i))
+            {
+                this.Value = i;
+                return true;
+            }
+            return false;
+        }
+
+
+        public DoubleCount Add(DoubleCount a)
+        {
+            return new DoubleCount() { Value = this.Value + a.Value };
+        }
+
+        /// <summary>
+        /// Value = 1
+        /// </summary>
+        public static DoubleCount Default
+        {
+            get { return new DoubleCount() { Value = 1 }; }
+        }
+
+        public static DoubleCount Create(double i)
+        {
+            return new DoubleCount() { Value = 1 };
+        }
+
+    }
+
 }

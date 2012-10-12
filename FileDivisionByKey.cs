@@ -42,9 +42,9 @@ namespace ParallelCountLib
             foreach (var item in sourceFilesName)
             {
                 OnReport(item + "解析中");
-                foreach (var line in System.IO.File.ReadAllLines(item))
+                foreach (var line in System.IO.File.ReadLines(item))
                 {
-                    string key = GetKeyFunc(line);
+                    string key = GetHashFunc(line);
                     System.IO.StreamWriter sw;
                     if (dic.TryGetValue(key, out sw) == false)
                     {

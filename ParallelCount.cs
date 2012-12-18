@@ -38,6 +38,7 @@ namespace ParallelCountLib
 
         public void Run(string resultFile, IEnumerable<string> sourceFiles)
         {
+            OnReport("----------------- "+resultFile+"開始 ----------------------");
             System.Collections.Concurrent.ConcurrentStack<string> stack = new System.Collections.Concurrent.ConcurrentStack<string>();
             stack.PushRange(sourceFiles.ToArray());
             for (int i = 0; i < ThreadNum; i++)
@@ -47,27 +48,30 @@ namespace ParallelCountLib
                     string n;
 
                     DataStockManage<CountData, ReadData> dsManage = new DataStockManage<CountData, ReadData>() { BaseFolder = BaseFolder, StockType = StockType.Memory, BaseFileName = "Thread" + i.ToString() , HashNameManage = hnm};
-                    dataStockMagageList.Add(dsManage);
-                    if (ReadLineAction != null)
+                    if (dsManage != null)
                     {
-                        dsManage.ReadLineAction = ReadLineAction;
-                    }
-
-                    while (true)
-                    {
-                        if (stack.TryPop(out n) == false)
+                        dataStockMagageList.Add(dsManage);
+                        if (ReadLineAction != null)
                         {
-                            break;
+                            dsManage.ReadLineAction = ReadLineAction;
                         }
 
-                        OnReport(n + "\tstart");
+                        while (true)
+                        {
+                            if (stack.TryPop(out n) == false)
+                            {
+                                break;
+                            }
 
-                        DateTime start = DateTime.Now;
-                        dsManage.FileRead(n);
+                            OnReport(n + "\tstart");
 
-                        string str = n + "\t" + (DateTime.Now - start).TotalMinutes.ToString();// +"\t" + System.GC.GetTotalMemory(false).ToString();
+                            DateTime start = DateTime.Now;
+                            dsManage.FileRead(n);
 
-                        OnReport(str);
+                            string str = n + "\t" + (DateTime.Now - start).TotalMinutes.ToString();// +"\t" + System.GC.GetTotalMemory(false).ToString();
+
+                            OnReport(str);
+                        }
                     }
                 }, System.Threading.Tasks.TaskCreationOptions.LongRunning);
 
@@ -96,6 +100,8 @@ namespace ParallelCountLib
                 item.Dispose();
             }
             taskList.Clear();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
     }
 }

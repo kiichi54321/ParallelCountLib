@@ -2,6 +2,19 @@
 
 C#で作成した並列化したカウントクラスです。
 MapReduceアルゴリズムを元ネタにしています。
+大体、シングルスレッド時と比べて、3分の1から4分の１のスピードが出るようです。
+とりあえず、でかいファイルだし、並列して集計したいわ、というのが目的です。
+わざわざ分散させて集計するなんていうのは、面倒という人がターゲットですね。
+
+小規模ファイル用のやり方（簡単）
+
+簡単に一つのファイルを並列処理して集計したい用です。
+一応、逐次読み込みで、一度にすべてのファイルをメモリに読み込む、なんていうことはしません。
+
+
+
+大規模ファイル用のやり方（ややこしい）
+
 Core i7 で、4GBのデータの組み合わせカウントをシングルスレッドでは65分のところを、20分程度で終わらせることができました。
 3分の1程度の速度UPでしょうか。ファイルIOに関しての最適化が全くしていないからでしょう。
 データをRamドライブにおくと、ファイルIOがシビアじゃなくなるので、もっと早くなると思うのですが。
@@ -22,8 +35,8 @@ ReadDataクラスの作成
 	GroupByKeyFuncを設定して、まとめるKeyを設定する。
 	その中で、ReadLinesAction()をオーバーライドして、蓄積されたReadLinesからOnAddCountを叩いて数え上げるデータを生成する。
 
-ParallelCountの起動
-	今まで作ったReadData、CountDataを設定して　ParallelCount<CountData, ReadData>をNewする。
+ParallelCountForFileの起動
+	今まで作ったReadData、CountDataを設定して　ParallelCountForFile<CountData, ReadData>をNewする。
 	作成するスレッド数は初期設定で６です。CPUやメモリーなどをかんがみて設定してください。
 	CPUのコア数以上にスレッドを設定しても遅くなるし、スレッドを増やすとメモリー使用量も増えます。
 	Runで、分割ファイルを最終出力ファイルを設定して、実行開始。待つ。
@@ -108,7 +121,7 @@ public class SampleReadData : BaseReadData<IntCount>
 void Run()
 {
 	var files = System.IO.Directory.GetFiles("Data").Where(n => n.Contains("sorted"));
-	using (ParallelCount<IntCount,SampleReadData> paraCount = new ParallelCount<IntCount, SampleReadData>())
+	using (ParallelCountForFile<IntCount,SampleReadData> paraCount = new ParallelCountForFile<IntCount, SampleReadData>())
 	{
 		paraCount.ThreadNum = 4;
 		paraCount.ReportAction = (n) => { System.Console.WriteLine(n); };

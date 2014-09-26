@@ -1,107 +1,96 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
 namespace ParallelCountLib
 {
-    public class ParallelCountForFile<CountData, ReadData>:IDisposable
-        where CountData : ICountDataStruct<CountData>, new()
-        where ReadData : BaseReadData<CountData>, new()
+    public class ParallelCount
     {
-
-        private int threadNum = 6;
-
-        public int ThreadNum
+        static int threadNum = 6;
+        public static int ThreadNum
         {
-            get { return threadNum; }
-            set { threadNum = value; }
+            get { return ParallelCount.threadNum; }
+            set { ParallelCount.threadNum = value; }
+        }
+        public static CountDictionary Run<T>(IEnumerable<T> source, Func<T, IEnumerable<string>> func)
+        {
+            return Run<T>(source, func, 10000,2);
         }
 
-        public Action<ReadData> ReadLineAction { get; set; }
-
-        public Action<string> ReportAction { get; set; }
-
-        protected void OnReport(string message)
+        public static CountDictionary RunTextFile(string fileName, Func<string, IEnumerable<string>> func, int readRange, int minCount)
         {
-            if (ReportAction != null)
-            {
-                ReportAction(message);
-            }
+            return Run<string>(SynchronizedReadLines(fileName), func, readRange, minCount);
+        }
+        public static CountDictionary RunTextFile(string fileName, Func<string, IEnumerable<string>> func)
+        {
+            return Run<string>(SynchronizedReadLines(fileName), func, 10000, 1);
         }
 
-        public string BaseFolder { get; set; }
 
-        List<System.Threading.Tasks.Task> taskList = new List<System.Threading.Tasks.Task>();
-        HashNameManage hnm = new HashNameManage();
-        List<DataStockManage<CountData, ReadData>> dataStockMagageList = new List<DataStockManage<CountData, ReadData>>();
-
-        public void Run(string resultFile, IEnumerable<string> sourceFiles)
+        public static CountDictionary Run<T>(IEnumerable<T> source, Func<T, IEnumerable<string>> func, int readRange, int minCount)
         {
-            OnReport("----------------- "+resultFile+"開始 ----------------------");
-            System.Collections.Concurrent.ConcurrentStack<string> stack = new System.Collections.Concurrent.ConcurrentStack<string>();
-            stack.PushRange(sourceFiles.ToArray());
+            LoadStack<T> stack = new LoadStack<T>();
+            stack.Source = source;
+            stack.Take = readRange * 10;
+            stack.LoadNoTask();
+            List<System.Threading.Tasks.Task<CountDictionary>> tasks = new List<System.Threading.Tasks.Task<CountDictionary>>();
             for (int i = 0; i < ThreadNum; i++)
             {
-                var task = System.Threading.Tasks.Task.Factory.StartNew(() =>
+                var task = System.Threading.Tasks.Task.Factory.StartNew<CountDictionary>((n) =>
                 {
-                    string n;
-
-                    DataStockManage<CountData, ReadData> dsManage = new DataStockManage<CountData, ReadData>() { BaseFolder = BaseFolder, StockType = StockType.Memory, BaseFileName = "Thread" + i.ToString() , HashNameManage = hnm};
-                    if (dsManage != null)
+                    T[] range = new T[readRange];
+                    CountDictionary cDic = new CountDictionary();
+                    while (true)
                     {
-                        dataStockMagageList.Add(dsManage);
-                        if (ReadLineAction != null)
+                        if (stack.TryPopRange(range) == 0)
                         {
-                            dsManage.ReadLineAction = ReadLineAction;
+                            if (stack.Completed) break;
+                            System.Threading.Thread.Sleep(100);
                         }
-
-                        while (true)
+                        stack.Load();
+                        foreach (var item in range.Where(m => m != null))
                         {
-                            if (stack.TryPop(out n) == false)
+                            foreach (var item2 in func(item))
                             {
-                                break;
+                                cDic.AddCount(item2);
                             }
-
-                            OnReport(n + "\tstart");
-
-                            DateTime start = DateTime.Now;
-                            dsManage.FileRead(n);
-
-                            string str = n + "\t" + (DateTime.Now - start).TotalMinutes.ToString();// +"\t" + System.GC.GetTotalMemory(false).ToString();
-
-                            OnReport(str);
                         }
                     }
+                    return cDic;
                 }, System.Threading.Tasks.TaskCreationOptions.LongRunning);
-
-                if(task !=null) taskList.Add(task);
+                if (task != null) tasks.Add(task);
             }
-            System.Threading.Tasks.Task.WaitAll(taskList.ToArray());
-            OnReport("Start Reduce");
-
-            DataStockManage<CountData, ReadData>.Reduce(resultFile, dataStockMagageList);
+            System.Threading.Tasks.Task.WaitAll(tasks.ToArray());
+            CountDictionary allDic = new CountDictionary();
+            foreach (var item in tasks)
+            {
+                foreach (var d in item.Result.GetDictionary(minCount))
+                {
+                    allDic.AddCount(d.Key, d.Value);
+                }
+            }
+            return allDic;
         }
 
-
-
-
-
-        public void Dispose()
+        public static IEnumerable<string> SynchronizedReadLines(string file)
         {
-            hnm.Dispose();
-            foreach (var item in dataStockMagageList)
+            using (var stream = System.IO.File.OpenText(file))
+            using (var stream2 = StreamReader.Synchronized(stream))
             {
-                item.Dispose();
+                while (true)
+                {
+                    if (stream2.Peek() > 0)
+                    {
+                        yield return stream2.ReadLine();
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
             }
-            dataStockMagageList.Clear();
-            foreach (var item in taskList)
-            {
-                item.Dispose();
-            }
-            taskList.Clear();
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
         }
     }
 }

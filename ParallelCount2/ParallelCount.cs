@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -27,6 +28,65 @@ namespace ParallelCountLib
         {
             return Run<string>(SynchronizedReadLines(fileName), func, 10000, 1);
         }
+
+
+
+
+        public static IEnumerable<T> ForEach<T>(IEnumerable<T> source,Action<T> action )
+        {
+            ConcurrentStack<T> stack = new ConcurrentStack<T>(source);
+            List<System.Threading.Tasks.Task<List<T>>> tasks = new List<System.Threading.Tasks.Task<List<T>>>();
+            for (int i = 0; i < ThreadNum; i++)
+            {
+                var task = System.Threading.Tasks.Task.Factory.StartNew<List<T>>((n) =>
+                {
+                    List<T> list = new List<T>();
+                    while (true)
+                    {
+                        T s;
+                        if (stack.TryPop(out s) == false)
+                        {
+                            break;
+                        }
+                        action(s);
+                        list.Add(s);
+                    }
+                    return list;
+                }, System.Threading.Tasks.TaskCreationOptions.LongRunning);
+                if (task != null) tasks.Add(task);
+            }
+            System.Threading.Tasks.Task.WaitAll(tasks.ToArray());
+            return tasks.SelectMany(n => n.Result);
+        }
+ 
+
+        public static IEnumerable<T> ForEach<Source,T>(IEnumerable<Source> source,Func<Source,T> func )
+        {
+            ConcurrentStack<Source> stack = new ConcurrentStack<Source>(source);
+                
+            List<System.Threading.Tasks.Task<List<T>>> tasks = new List<System.Threading.Tasks.Task<List<T>>>();
+            for (int i = 0; i < ThreadNum; i++)
+            {
+                 var task = System.Threading.Tasks.Task.Factory.StartNew<List<T>>((n) =>
+                {
+                    List<T> list = new List<T>();
+                    while (true)
+                    {
+                        Source s;
+                        if (stack.TryPop(out s) == false )
+                        {
+                            break;
+                        }
+                        list.Add(func(s));
+                    }
+                    return list;
+                }, System.Threading.Tasks.TaskCreationOptions.LongRunning);
+                if (task != null) tasks.Add(task);
+            }            
+            System.Threading.Tasks.Task.WaitAll(tasks.ToArray());
+            return tasks.SelectMany(n => n.Result);
+        }
+
 
 
         public static CountDictionary Run<T>(IEnumerable<T> source, Func<T, IEnumerable<string>> func, int readRange, int minCount)

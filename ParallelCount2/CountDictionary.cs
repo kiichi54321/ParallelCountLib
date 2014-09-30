@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ParallelCount.Extend;
 
 namespace ParallelCountLib
 {
@@ -47,7 +48,7 @@ namespace ParallelCountLib
             string hash = GetHashString(text);
             Dictionary<string, IntCount> tDic = new Dictionary<string,IntCount>();
             IntCount intCount = new IntCount();
-
+         
             if (dic.TryGetValue(hash, out tDic))
             {
                 if( tDic.TryGetValue(text,out intCount))
@@ -71,17 +72,70 @@ namespace ParallelCountLib
             return dic.SelectMany(n => n.Value).Where(n=>n.Value.Value >=min).ToDictionary(n=> n.Key,n=>n.Value);
         }
 
+        public Dictionary<string,IntCount> GetDictionarySkip(int min)
+        {
+             var d = dic.SelectMany(n => n.Value).Where(n=>n.Value.Value >=min).GroupBy(n=>n.Value.Value);
+             List<KeyValuePair<string, IntCount>> list2 = new List<KeyValuePair<string, IntCount>>(dic.Count/2);
+
+            var d2 =  ParallelCount.ForEach<IGrouping<int, KeyValuePair<string, IntCount>>,List<KeyValuePair<string, IntCount>>>(d,
+                 item => {
+                     List<KeyValuePair<string, IntCount>> list = new List<KeyValuePair<string, IntCount>>(item.OrderByDescending(n => n.Key.Length));
+                     KeyValuePair<string, IntCount> c = list.First();
+                     int count = 0;
+                     while (true)
+                     {
+                         foreach (var item2 in list.ToArray())
+                         {
+                             if (item2.Key != c.Key && c.Key.Contains(item2.Key))
+                             {
+                                 list.Remove(item2);
+                             }
+                         }
+                         count++;
+                         if (list.Count <= count) break;
+                         c = list[count];
+                     }
+                     return list;                 
+                 });
+            return d2.SelectMany(n => n).ToDictionary(n => n.Key, n => n.Value);
+             //foreach (var item in d)
+             //{
+             //    List<KeyValuePair<string, IntCount>> list = new List<KeyValuePair<string, IntCount>>(item.OrderByDescending(n => n.Key.Length));
+             //    KeyValuePair<string, IntCount> c = list.First();
+             //    int count = 0;
+             //    while(true)
+             //    {
+             //        foreach (var item2 in list.ToArray())
+             //        {
+             //            if(item2.Key != c.Key && c.Key.Contains(item2.Key) )
+             //            {
+             //                list.Remove(item2);
+             //            }
+             //        }
+             //        count++;
+             //        if (list.Count < count) break;
+             //        c = list[count];
+             //    }
+             //    list2.AddRange(list);
+             //}
+             //return list2.ToDictionary(n => n.Key, n => n.Value);
+        }
+
+
         public void Save(string fileName,int min)
         {
             using (var file = System.IO.File.CreateText(fileName))
             {
-                foreach (var item in this.GetDictionary(min).OrderByDescending(n=>n.Value.Value))
+                var utf8 = System.Text.UTF8Encoding.UTF8;
+                    
+                foreach (var item in this.GetDictionarySkip(min).OrderByDescending(n=>n.Value.Value))
                 {
                     try
                     {
-                        file.WriteLine(item.Key + "\t" + item.Value.ToString());
+                        var d = utf8.GetBytes(item.Key);
+                        file.WriteLine( item.Key + "\t" + item.Value.ToString());
                     }
-                    catch
+                    catch(Exception e)
                     {
 
                     }

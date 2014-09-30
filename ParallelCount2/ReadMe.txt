@@ -11,6 +11,18 @@ MapReduceアルゴリズムを元ネタにしています。
 簡単に一つのファイルを並列処理して集計したい用です。
 一応、逐次読み込みで、一度にすべてのファイルをメモリに読み込む、なんていうことはしません。
 
+使い方
+
+テキストファイルを指定して、一行読み込んだ時の処理を書く。
+例は、TinySegmenterを使って分かち書きをしたものを集計する。
+
+            TinySegmenterDotNet.TinySegmenter tinySegmenter = new TinySegmenterDotNet.TinySegmenter();
+            var dic = ParallelCountLib.ParallelCount.RunTextFile("sample.txt",
+                (n) =>
+                {
+                    return tinySegmenter.Segment(n);
+                });
+            dic.Save(@"result.txt", 20);
 
 
 大規模ファイル用のやり方（ややこしい）

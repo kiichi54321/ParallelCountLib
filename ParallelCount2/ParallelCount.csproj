@@ -43,6 +43,7 @@
     <Compile Include="CountDictionary.cs" />
     <Compile Include="DataStock.cs" />
     <Compile Include="DataStockManage.cs" />
+    <Compile Include="Extend.cs" />
     <Compile Include="ParallelCount.cs" />
     <Compile Include="FileDivisionByKey.cs" />
     <Compile Include="HashNameManage.cs" />
